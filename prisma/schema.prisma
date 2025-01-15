@@ -1,0 +1,52 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // e.g., postgresql://user:pass@localhost:5432/db
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Recipie_App_User {
+  id        String               @id @default(uuid())
+  email     String               @unique
+  password  String
+  recipes   Recipie_App_Recipe[]
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+}
+
+model Recipie_App_Recipe {
+  id              String                  @id @default(uuid())
+  title           String
+  description     String?
+  isPublic        Boolean                 @default(false)
+  parentRecipeId  String?
+  parentRecipe    Recipie_App_Recipe?     @relation("RecipeCopies", fields: [parentRecipeId], references: [id])
+  childRecipes    Recipie_App_Recipe[]    @relation("RecipeCopies")
+
+  // Relation to the user
+  userId          String
+  user            Recipie_App_User        @relation(fields: [userId], references: [id])
+
+  // Relation to directions
+  directions      Recipie_App_Direction[]
+
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+}
+
+model Recipie_App_Direction {
+  id          String               @id @default(uuid())
+  stepNumber  Int
+  instruction String
+
+  // Relation to recipe
+  recipeId    String
+  recipe      Recipie_App_Recipe   @relation(fields: [recipeId], references: [id])
+
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
